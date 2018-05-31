@@ -1,0 +1,19 @@
+{
+  "name": "DNS-O-Matic",
+  "version": "0.1",
+  "slug": "dnsomatic",
+  "description": "Dynamic DNS via DNS-O-Matic",
+  "url": "https://www.dnsomatic.com/",
+  "startup": "once",
+  "boot": "manual",
+  "options": {
+    "hostname": "all.dnsomatic.com",
+    "username": "user@email.com",
+    "password": "myawesomepassword"
+  },
+  "schema": {
+    "hostname": "str",
+    "username": "str",
+    "password": "str"
+  }
+}
