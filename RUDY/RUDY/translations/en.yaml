@@ -1,0 +1,4 @@
+configuration:
+  message:
+    name: Message
+    description: Starting the RUDY add-on

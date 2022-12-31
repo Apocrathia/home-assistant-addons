@@ -1,0 +1,142 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Start the RUDY service
+# s6-overlay docs: https://github.com/just-containers/s6-overlay
+# ==============================================================================
+
+# Declare variables
+declare ROLE
+declare USBIP_SERVER
+declare USBIP_PORT
+declare USBIP_DETACH_ORPHANS
+declare USBIP_DETACH_ALL
+declare USBIP_ATTACH_DELAY
+declare USBIP_DEVICE_IDS
+declare USBIP_DEVICE_ID_SEPARATOR
+declare USBIP_SID_REGEX
+declare USBIP_BUS_IDS
+declare MQTT_HOST
+declare MQTT_PORT
+declare MQTT_USERNAME
+declare MQTT_PASSWORD
+declare MQTT_PUBLISH_TOPIC
+declare MQTT_PUBLISH_OPTIONS
+declare MQTT_RELOAD_ON_TOPIC
+declare MQTT_SUBSCRIBE_OPTIONS
+declare RUDY_DEBUG
+declare RUDY_TRACE
+declare mqtt_options
+
+# Assign options to variables
+ROLE=$(bashio::config 'role')
+USBIP_SERVER=$(bashio::config 'usbip_server')
+USBIP_PORT=$(bashio::config 'usbip_port')
+USBIP_DETACH_ORPHANS=$(bashio::config 'usbip_detach_orphans')
+USBIP_DETACH_ALL=$(bashio::config 'usbip_detach_all')
+USBIP_ATTACH_DELAY=$(bashio::config 'usbip_attach_delay')
+USBIP_DEVICE_IDS=$(bashio::config 'usbip_device_ids')
+USBIP_DEVICE_ID_SEPARATOR=$(bashio::config 'usbip_device_id_separator')
+USBIP_SID_REGEX=$(bashio::config 'usbip_sid_regex')
+USBIP_BUS_IDS=$(bashio::config 'usbip_bus_ids')
+MQTT_HOST=$(bashio::config 'mqtt_host')
+MQTT_PORT=$(bashio::config 'mqtt_port')
+MQTT_USERNAME=$(bashio::config 'mqtt_username')
+MQTT_PASSWORD=$(bashio::config 'mqtt_password')
+MQTT_PUBLISH_TOPIC=$(bashio::config 'mqtt_publish_topic')
+MQTT_PUBLISH_OPTIONS=$(bashio::config 'mqtt_publish_options')
+MQTT_RELOAD_ON_TOPIC=$(bashio::config 'mqtt_reload_on_topic')
+MQTT_SUBSCRIBE_OPTIONS=$(bashio::config 'mqtt_subscribe_options')
+mqtt_options=$(bashio::config 'mqtt_options')
+RUDY_DEBUG=$(bashio::config 'rudy_debug')
+RUDY_TRACE=$(bashio::config 'rudy_trace')
+
+# Print variable values to console
+bashio::log.info "Starting RUDY in $ROLE mode."
+bashio::log.info "USBIP_SERVER: $USBIP_SERVER:$USBIP_PORT"
+bashio::log.info "USBIP_DETACH_ORPHANS: $USBIP_DETACH_ORPHANS"
+bashio::log.info "USBIP_DETACH_ALL: $USBIP_DETACH_ALL"
+bashio::log.info "USBIP_ATTACH_DELAY: $USBIP_ATTACH_DELAY"
+bashio::log.info "USBIP_DEVICE_IDS: $USBIP_DEVICE_IDS"
+bashio::log.info "USBIP_DEVICE_ID_SEPARATOR: $USBIP_DEVICE_ID_SEPARATOR"
+bashio::log.info "USBIP_SID_REGEX: $USBIP_SID_REGEX"
+bashio::log.info "USBIP_BUS_IDS: $USBIP_BUS_IDS"
+bashio::log.info "MQTT_HOST: $MQTT_HOST"
+bashio::log.info "MQTT_PORT: $MQTT_PORT"
+bashio::log.info "MQTT_USERNAME: $MQTT_USERNAME"
+bashio::log.info "MQTT_PASSWORD: $MQTT_PASSWORD"
+bashio::log.info "MQTT_PUBLISH_TOPIC: $MQTT_PUBLISH_TOPIC"
+bashio::log.info "MQTT_PUBLISH_OPTIONS: $MQTT_PUBLISH_OPTIONS"
+bashio::log.info "MQTT_RELOAD_ON_TOPIC: $MQTT_RELOAD_ON_TOPIC"
+bashio::log.info "MQTT_SUBSCRIBE_OPTIONS: $MQTT_SUBSCRIBE_OPTIONS"
+bashio::log.info "RUDY_DEBUG: $RUDY_DEBUG"
+bashio::log.info "RUDY_TRACE: $RUDY_TRACE"
+
+# Generate MQTT options
+mqtt_options+=" -h $MQTT_HOST"
+mqtt_options+=" -p $MQTT_PORT"
+mqtt_options+=" -u $MQTT_USERNAME"
+mqtt_options+=" -P $MQTT_PASSWORD"
+mqtt_options+=" -i $MQTT_USERNAME"
+bashio::log.info "mqtt_options: $mqtt_options"
+
+# Validate options
+if [ "$USBIP_SERVER" == "null" ]; then
+    bashio::log.error "USBIP_SERVER not specified."
+    exit 1
+fi
+if [ "$USBIP_PORT" == "null" ]; then
+    bashio::log.error "USBIP_PORT not specified."
+    exit 1
+fi
+
+# Roll all variables into an array
+declare -a options
+options=("USBIP_SERVER=$USBIP_SERVER" \
+        "USBIP_PORT=$USBIP_PORT" \
+        "USBIP_DETACH_ORPHANS=$USBIP_DETACH_ORPHANS" \
+        "USBIP_DETACH_ALL=$USBIP_DETACH_ALL" \
+        "USBIP_ATTACH_DELAY=$USBIP_ATTACH_DELAY" \
+        "USBIP_DEVICE_IDS=$USBIP_DEVICE_IDS" \
+        "USBIP_DEVICE_ID_SEPARATOR=$USBIP_DEVICE_ID_SEPARATOR" \
+        "USBIP_SID_REGEX=$USBIP_SID_REGEX" \
+        "USBIP_BUS_IDS=$USBIP_BUS_IDS" \
+        "MQTT_PUBLISH_TOPIC=$MQTT_PUBLISH_TOPIC" \
+        "MQTT_PUBLISH_OPTIONS=$MQTT_PUBLISH_OPTIONS" \
+        "MQTT_RELOAD_ON_TOPIC=$MQTT_RELOAD_ON_TOPIC" \
+        "MQTT_SUBSCRIBE_OPTIONS=$MQTT_SUBSCRIBE_OPTIONS" \
+        "RUDY_DEBUG=$RUDY_DEBUG" \
+        "RUDY_TRACE=$RUDY_TRACE")
+
+# Add MQTT options to array
+if [ "$mqtt_options" != "null" ]; then
+    options+=("MQTT_OPTIONS=\"$mqtt_options\"")
+fi
+
+# Ensure export file is empty
+echo "" > /etc/rudy.conf
+
+# Loop through array and add options to export file
+for i in "${options[@]}"; do
+    if [ "$i" != "null" ]; then
+        echo "export $i" >> /etc/rudy.conf
+    fi
+done
+
+# Print export file to console
+bashio::log.info "Export file:"
+cat /etc/rudy.conf
+
+# Determine which executable to use
+case $ROLE in
+    "client")
+        exec /usr/bin/client
+        ;;
+    "server")
+        exec /usr/bin/server
+        ;;
+    *)
+        bashio::log.error "Invalid role specified."
+        exit 1
+        ;;
+esac
+
