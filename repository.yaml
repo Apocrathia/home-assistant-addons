@@ -1,4 +1,4 @@
 # https://developers.home-assistant.io/docs/add-ons/repository#repository-configuration
-name: Apocrathia's Assistant add-on repository
+name: Apocrathia's Home Assistant add-on repository
 url: 'https://github.com/Apocrathia/home-assistant-addons'
-maintainer: Ian <contact@apocrathia.com>
+maintainer: Apocrathia <contact@apocrathia.com>
