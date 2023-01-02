@@ -76,7 +76,7 @@ mqtt_options+=" -h $MQTT_HOST"
 mqtt_options+=" -p $MQTT_PORT"
 mqtt_options+=" -u $MQTT_USERNAME"
 mqtt_options+=" -P $MQTT_PASSWORD"
-mqtt_options+=" -i $MQTT_USERNAME"
+mqtt_options+=" -i $MQTT_USERNAME-$ROLE"
 bashio::log.info "mqtt_options: $mqtt_options"
 
 # Validate options
