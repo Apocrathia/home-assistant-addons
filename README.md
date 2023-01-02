@@ -26,7 +26,7 @@ This addon runs the RTL-SDR program `rtl_tcp` to easily connect an SDR connected
 
 ### RUDY
 
-This addon runs [RUDY](https://github.com/git-developer/rudy) to manage USB/IP connections to the HA instance. This allows me to connect USB devices to any HA instance, and connect it to my main instance that has more compute power and can perform many of the calculations required by [rtlamr](https://github.com/bemasher/rtlamr) and [rtl_433](https://github.com/merbanan/rtl_433) 
+This addon runs [RUDY](https://github.com/git-developer/rudy) to manage USB/IP connections to the HA instance.
 
 <!--
 
