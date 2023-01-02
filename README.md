@@ -20,13 +20,13 @@ This repository contains the following add-ons
 
 _Example add-on to use as a blueprint for new add-ons._
 
-### Datadog Agent
-
-A simple implementation of the Datadog agent so that you can forward metrics. I created this while testing Datadog, and I don't use this add-on enough to keep it maintained. If something is broken, feel free to submit a PR.
-
 ### RTL-SDR TCP Server
 
 This addon runs the RTL-SDR program `rtl_tcp` to easily connect an SDR connected to the HA instance to another add-on or another instance. Decoupling this allows me to connect an SDR to any HA instance, and connect it to my main instance that has more compute power and can perform many of the calculations required by [rtlamr](https://github.com/bemasher/rtlamr) and [rtl_433](https://github.com/merbanan/rtl_433).
+
+### RUDY
+
+This addon runs [RUDY](https://github.com/git-developer/rudy) to manage USB/IP connections to the HA instance. This allows me to connect USB devices to any HA instance, and connect it to my main instance that has more compute power and can perform many of the calculations required by [rtlamr](https://github.com/bemasher/rtlamr) and [rtl_433](https://github.com/merbanan/rtl_433) 
 
 <!--
 
