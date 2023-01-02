@@ -11,11 +11,19 @@ arch:
   - amd64
   - i386
 init: false
-privileged:
-  - NET_ADMIN
-  - SYS_ADMIN
+apparmor: false
+full_access: true
+usb: true
+udev: true
+devicetree: false
+devices:
+  - /dev/bus/usb
 map:
   - share:rw
+kernel_modules:
+  - usbip-core
+  - usbip-host
+  - vhci_hcd
 options:
   role: null
   usbip_server: null
