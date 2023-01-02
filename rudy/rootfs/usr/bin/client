@@ -97,8 +97,8 @@ attach() {
   debug "Attaching device ${bus_id}"
 
   if [ -s "${port_file}" ] \
-     && ports="$(find_ports "$(list_devices)" "${bus_id}")" \
-     && echo "${ports}" \
+    && ports="$(find_ports "$(list_devices)" "${bus_id}")" \
+    && echo "${ports}" \
         | while read port; do grep "$(printf '%01g' "${port}")" "${port_file}"; done \
         | grep -q .; then
     info "Device ${bus_id} is attached to port ${ports}"
