@@ -12,18 +12,14 @@ arch:
   - i386
 init: false
 apparmor: false
-full_access: true
 usb: true
 udev: true
-devicetree: false
+devicetree: true
 devices:
   - /dev/bus/usb
 map:
   - share:rw
-kernel_modules:
-  - usbip-core
-  - usbip-host
-  - vhci_hcd
+kernel_modules: true
 options:
   role: null
   usbip_server: null
