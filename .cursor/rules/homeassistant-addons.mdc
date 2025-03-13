@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Projects in this directory are Home Assistant add-ons.
+
+They are built using the Home Assistant Supervisor and are designed to be used with the Home Assistant Supervisor.
+
+The documentation is available at https://github.com/home-assistant/developers.home-assistant. Feel free to clone it into /tmp to read it.
+
+The system you're running on is a Home Assistant Add-on that has access to the Home Assistant CLI tool `ha`.
