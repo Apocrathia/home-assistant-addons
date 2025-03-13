@@ -1,0 +1,127 @@
+#!/usr/bin/with-contenv bashio
+
+# ==============================================================================
+# Start MCP Server
+# ==============================================================================
+
+# Set environment variables
+export DEBUG=$(bashio::config 'debug')
+export NODE_ENV=$(bashio::config 'node_env')
+export PORT=3000
+
+# Get Home Assistant token and set up connection details
+bashio::log.info "Setting up Home Assistant connection..."
+
+# Use supervisor token if available, otherwise try to get token from Home Assistant API
+if [ -n "${SUPERVISOR_TOKEN}" ]; then
+    HASS_TOKEN="${SUPERVISOR_TOKEN}"
+    bashio::log.info "Using supervisor token for authentication"
+else
+    bashio::log.warning "SUPERVISOR_TOKEN is empty or not set!"
+    bashio::log.info "Attempting to get token from Home Assistant API..."
+    HASS_TOKEN=$(bashio::api.token)
+    
+    if [ -z "${HASS_TOKEN}" ]; then
+        bashio::log.error "Failed to get token from any source!"
+        exit 1
+    else
+        bashio::log.info "Using token from Home Assistant API for authentication"
+    fi
+fi
+
+# Output the token directly in the logs for easy access
+bashio::log.info "==== TOKEN FOR API AUTHENTICATION ===="
+bashio::log.info "${HASS_TOKEN}"
+bashio::log.info "==== END TOKEN ===="
+
+# Create .env file with configuration
+cd /app || exit 1
+
+# Set LOG_LEVEL based on debug setting
+if [ "${DEBUG}" = "true" ]; then
+    # For @digital-alchemy libraries, debug level is 'trace'
+    LOG_LEVEL="trace"
+    export BOILERPLATE_LOG_LEVEL="trace"
+    export HASS_LOG_LEVEL="trace"
+else
+    # For @digital-alchemy libraries, info level is 'info'
+    LOG_LEVEL="info"
+    export BOILERPLATE_LOG_LEVEL="info"
+    export HASS_LOG_LEVEL="info"
+fi
+
+bashio::log.info "Log level: ${LOG_LEVEL}"
+bashio::log.info "Debug mode: ${DEBUG}"
+
+# Try to determine the correct Home Assistant URL
+if bashio::supervisor.ping; then
+    bashio::log.info "Supervisor is reachable"
+    HASS_HOST="http://supervisor/core"
+    HASS_SOCKET_URL="ws://supervisor/core/api/websocket"
+else
+    bashio::log.warning "Supervisor is not reachable, trying alternative URLs"
+    HASS_HOST="http://homeassistant:8123"
+    HASS_SOCKET_URL="ws://homeassistant:8123/api/websocket"
+fi
+
+bashio::log.info "Using Home Assistant URL: ${HASS_HOST}"
+
+# Export the token directly as an environment variable
+export HASS_TOKEN="${HASS_TOKEN}"
+cat > .env << EOF
+LOG_LEVEL=${LOG_LEVEL}
+DEBUG=${DEBUG}
+NODE_ENV=${NODE_ENV}
+HASS_TOKEN=${HASS_TOKEN}
+HASS_HOST=${HASS_HOST}
+HASS_SOCKET_URL=${HASS_SOCKET_URL}
+# Digital Alchemy specific log levels
+BOILERPLATE_LOG_LEVEL=${BOILERPLATE_LOG_LEVEL}
+HASS_LOG_LEVEL=${HASS_LOG_LEVEL}
+EOF
+
+bashio::log.info "Starting MCP Server..."
+bashio::log.info "Debug mode: ${DEBUG}"
+bashio::log.info "Node environment: ${NODE_ENV}"
+bashio::log.info "Home Assistant host: ${HASS_HOST}"
+
+# Check if the compiled JavaScript file exists
+if [ ! -f "dist/src/index.js" ]; then
+    bashio::log.error "dist/src/index.js not found. Attempting to rebuild..."
+    npm run build
+    
+    if [ ! -f "dist/src/index.js" ]; then
+        bashio::log.error "Build failed. dist/src/index.js still not found."
+        bashio::log.fatal "Could not start MCP Server"
+        exit 1
+    fi
+fi
+
+# Test the Home Assistant API connection
+bashio::log.info "Testing Home Assistant API connection..."
+RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${HASS_TOKEN}" "${HASS_HOST}/api/")
+bashio::log.info "API test response code: ${RESPONSE}"
+
+# Test the MCP server health endpoint
+bashio::log.info "Testing MCP server with token..."
+sleep 5  # Wait for the server to start
+
+# Check MCP health endpoint and handle errors properly
+MCP_TEST=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000/health" || echo "Failed")
+if [[ "${MCP_TEST}" == "Failed" || "${MCP_TEST}" != "200" ]]; then
+    bashio::log.error "MCP health endpoint test failed with response: ${MCP_TEST}"
+else
+    bashio::log.info "MCP health endpoint test successful: ${MCP_TEST}"
+fi
+
+# Try a protected endpoint
+bashio::log.info "Testing MCP protected endpoint..."
+MCP_LIST=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000/list_devices?token=${HASS_TOKEN}" || echo "Failed")
+if [[ "${MCP_LIST}" == "Failed" || "${MCP_LIST}" != "200" ]]; then
+    bashio::log.error "MCP list_devices endpoint test failed with response: ${MCP_LIST}"
+else
+    bashio::log.info "MCP list_devices endpoint test successful: ${MCP_LIST}"
+fi
+
+bashio::log.info "Starting node application..."
+exec node dist/src/index.js
