@@ -102,6 +102,11 @@ bashio::log.info "Testing Home Assistant API connection..."
 RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${HASS_TOKEN}" "${HASS_HOST}/api/")
 bashio::log.info "API test response code: ${RESPONSE}"
 
+# Start the MCP server
+bashio::log.info "Starting MCP server..."
+exec node dist/src/index.js
+sleep 30
+
 # Test the MCP server health endpoint
 bashio::log.info "Testing MCP server with token..."
 sleep 5  # Wait for the server to start
@@ -122,6 +127,3 @@ if [[ "${MCP_LIST}" == "Failed" || "${MCP_LIST}" != "200" ]]; then
 else
     bashio::log.info "MCP list_devices endpoint test successful: ${MCP_LIST}"
 fi
-
-bashio::log.info "Starting node application..."
-exec node dist/src/index.js
