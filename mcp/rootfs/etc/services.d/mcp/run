@@ -109,9 +109,6 @@ sleep 30
 
 # Test the MCP server health endpoint
 bashio::log.info "Testing MCP server with token..."
-sleep 5  # Wait for the server to start
-
-# Check MCP health endpoint and handle errors properly
 MCP_TEST=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000/health" || echo "Failed")
 if [[ "${MCP_TEST}" == "Failed" || "${MCP_TEST}" != "200" ]]; then
     bashio::log.error "MCP health endpoint test failed with response: ${MCP_TEST}"
