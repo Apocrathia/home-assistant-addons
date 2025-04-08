@@ -1,0 +1,41 @@
+name: "MCP Inspector"
+description: "A development tool for testing and debugging MCP servers"
+version: "0.1.0"
+slug: "mcp_inspector"
+url: "https://github.com/modelcontextprotocol/inspector"
+init: false
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+startup: services
+stage: experimental
+build: true
+ingress: true
+ingress_port: 6274
+init: true
+panel_icon: mdi:code-json
+panel_title: "MCP Inspector"
+ports:
+  6274/tcp: 6274
+  6277/tcp: 6277
+ports_description:
+  6274/tcp: "MCP Inspector Client UI port"
+  6277/tcp: "MCP Proxy Server port"
+options:
+  client_port: 6274
+  server_port: 6277
+  mcp_server_request_timeout: 10000
+  mcp_proxy_full_address: ""
+  ha_mcp_server: false
+  ha_access_token: ""
+schema:
+  client_port: "int"
+  server_port: "int"
+  mcp_server_request_timeout: "int"
+  mcp_proxy_full_address: "str?"
+  ha_mcp_server: "bool"
+  ha_access_token: "str?"
+webui: "http://[HOST]:[PORT:6274]"
