@@ -15,7 +15,7 @@
 		"enabled": true
 	},
 	"automerge": true,
-	"automergeType": "merge",
+	"automergeType": "pr",
 	"lockFileMaintenance": {
 		"enabled": true,
 		"extends": ["schedule:daily"],
