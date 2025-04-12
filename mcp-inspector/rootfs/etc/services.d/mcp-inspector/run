@@ -1,0 +1,30 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Start the MCP Inspector service
+# s6-overlay docs: https://github.com/just-containers/s6-overlay
+# ==============================================================================
+
+# Get configuration values
+CLIENT_PORT=$(bashio::config 'client_port')
+SERVER_PORT=$(bashio::config 'server_port')
+MCP_SERVER_REQUEST_TIMEOUT=$(bashio::config 'mcp_server_request_timeout')
+MCP_PROXY_FULL_ADDRESS=$(bashio::config 'mcp_proxy_full_address')
+ALLOW_ORIGIN=$(bashio::config 'allow_origin')
+
+# Export environment variables
+export CLIENT_PORT="${CLIENT_PORT}"
+export SERVER_PORT="${SERVER_PORT}"
+export MCP_SERVER_REQUEST_TIMEOUT="${MCP_SERVER_REQUEST_TIMEOUT}"
+
+# Optional environment variables
+if [ -n "${MCP_PROXY_FULL_ADDRESS}" ]; then
+    export MCP_PROXY_FULL_ADDRESS="${MCP_PROXY_FULL_ADDRESS}"
+fi
+if bashio::config.has_value 'allow_origin'; then
+    export ALLOW_ORIGIN="${ALLOW_ORIGIN}"
+fi
+
+# Run MCP Inspector
+bashio::log.info "Starting MCP Inspector with client port ${CLIENT_PORT} and server port ${SERVER_PORT}..."
+cd /data
+exec npx @modelcontextprotocol/inspector serve 

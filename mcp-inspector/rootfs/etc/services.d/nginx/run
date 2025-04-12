@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Start Nginx for ingress support
+# ==============================================================================
+
+# Get the add-on ingress path 
+INGRESS_PATH=$(bashio::addon.ingress_entry)
+export INGRESS_PATH
+
+bashio::log.info "Starting Nginx with ingress path ${INGRESS_PATH}..."
+
+# Run nginx
+exec nginx -c /etc/nginx/nginx.conf 

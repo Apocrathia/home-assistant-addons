@@ -1,3 +1,4 @@
 archive/*
 test/*
 node_modules/*
+**/prompt.md
